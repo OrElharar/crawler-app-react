@@ -6,10 +6,15 @@ const API_DB_URL = "http://localhost:4000";
 export const getNextDepthLvlFromDB = async (crawlerId) => {
     try {
         const res = await Axios.get(API_DB_URL + `/get-next-depth/${crawlerId}`);
-        console.log({ res });
         return res.data;
     } catch (err) {
-        throw (err)
+        if (err.status === 404) {
+            return {
+                currentDepthTree: [],
+                isCrawlingDone: false
+            }
+        }
+        throw err
     }
 };
 

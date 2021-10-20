@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { postCrawerOnDB } from './dataBase/urlsRequests';
+import { getNextDepthLvlFromDB, postCrawerOnDB } from './dataBase/urlsRequests';
+import Tree from './Tree';
 
 const App = () => {
-  const URL = "http://localhost:4000/get-image";
 
   const [urls, setUrls] = useState([]);
   const [startingUrl, setStartingUrl] = useState("");
@@ -10,31 +10,38 @@ const App = () => {
   const [maxDepth, setMaxDepth] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const [crawlerId, setCrawlerId] = useState("");
-
-
-
-  const renderUrls = () => {
-
-  }
+  const [isCrawlingFinished, setIsCrawlingFinished] = useState(false);
+  console.log({ urls });
 
   useEffect(() => {
-    console.log({ crawlerId });
-    let i = 0
-    let isCrawlingFinished = false
     const interval = setInterval(() => {
-      console.log(i++);
-      if (i === 10)
-        isCrawlingFinished = true
+      if (crawlerId !== "" && !isCrawlingFinished) {
+        getNextDepthLvlFromDB(crawlerId)
+          .then((data) => {
+            setIsCrawlingFinished(data.isCrawlingDone);
+            const newUrls = data.currentDepthTree;
+            setUrls([...urls, ...newUrls])
+            console.log({
+              urls,
+              newUrls
+            });
+          }).catch((err) => {
+            setErrorMessage(err.errorMessage)
+            // console.log({ err });
+          })
+      }
+
     }, 1000);
-    if (isCrawlingFinished)
-      clearInterval(interval);
+
     return () => {
       clearInterval(interval);
     }
-  }, [crawlerId]);
+  }, [crawlerId, urls]);
 
   const onSubmitForm = (e) => {
     e.preventDefault();
+    setUrls([]);
+    setIsCrawlingFinished(false);
     postCrawerOnDB({ startingUrl, maxNumberOfPages, maxDepth })
       .then((res) => {
         setCrawlerId(res.crawlerId);
@@ -61,16 +68,10 @@ const App = () => {
       </div>
       <div className="urls-container">
         <h2>Urls</h2>
-        {urls.map((url, i) => (
-          <div className="url-container" key={"url" + i}>
-            <div>Perant Id:{url.parentId}</div>
-            <div>Url Id:{url.id}</div>
-            <div>Address:{url.url}</div>
-            <div>Depth:{url.depth}</div>
-
-
-          </div>
-        ))}
+        {urls.length > 0
+          &&
+          <Tree urls={urls} />
+        }
       </div>
       {errorMessage !== "" && <div>{errorMessage}</div>}
     </div>
