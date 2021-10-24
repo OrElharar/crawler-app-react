@@ -1,5 +1,5 @@
 {
-  "name": "aws-computers-simple-app",
+  "name": "aws-crawler-app",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
@@ -8,6 +8,7 @@
     "@testing-library/user-event": "^12.1.10",
     "axios": "^0.22.0",
     "react": "^17.0.2",
+    "react-d3-tree": "^3.1.1",
     "react-dom": "^17.0.2",
     "react-scripts": "4.0.3",
     "web-vitals": "^1.0.1"

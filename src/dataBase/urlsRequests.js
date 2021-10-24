@@ -1,5 +1,4 @@
 import Axios from "axios";
-// const DB_URL = "http://computerssqlapiv1-env.eba-tkhyap3p.eu-west-1.elasticbeanstalk.com";
 const API_DB_URL = "http://localhost:4000";
 
 

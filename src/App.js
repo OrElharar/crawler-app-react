@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { getNextDepthLvlFromDB, postCrawerOnDB } from './dataBase/urlsRequests';
-import Tree from './Tree';
+import Tree from "react-d3-tree";
+import { containerStyles, list_to_tree, renderForeignObjectNode, useCenteredTree } from './utils/treeCreation';
 
 const App = () => {
 
@@ -11,8 +12,11 @@ const App = () => {
   const [errorMessage, setErrorMessage] = useState("");
   const [crawlerId, setCrawlerId] = useState("");
   const [isCrawlingFinished, setIsCrawlingFinished] = useState(false);
-  console.log({ urls });
-
+  // const [treeData, setTreeData] = useState(null);
+  // console.log({ treeData });
+  const nodeSize = { x: 200, y: 200 };
+  const foreignObjectProps = { width: nodeSize.x, height: nodeSize.y, x: 1 };
+  const [translate, containerRef] = useCenteredTree();
   useEffect(() => {
     const interval = setInterval(() => {
       if (crawlerId !== "" && !isCrawlingFinished) {
@@ -20,18 +24,19 @@ const App = () => {
           .then((data) => {
             setIsCrawlingFinished(data.isCrawlingDone);
             const newUrls = data.currentDepthTree;
-            setUrls([...urls, ...newUrls])
-            console.log({
-              urls,
-              newUrls
-            });
+            const treeArr = [...urls, ...newUrls];
+            // console.log({ treeArr });
+            // const treeStructure = list_to_tree(treeArr);
+            // console.log({ treeStructure });
+            // setTreeData(treeStructure[0]);
+            setUrls(treeArr)
           }).catch((err) => {
             setErrorMessage(err.errorMessage)
             // console.log({ err });
           })
       }
 
-    }, 1000);
+    }, 5000);
 
     return () => {
       clearInterval(interval);
@@ -49,6 +54,8 @@ const App = () => {
         console.log({ err });
       })
   }
+
+
 
   const isFormInvalid = () => {
     const urlRegex = /^(?:http(s)?:\/\/)?[\w.-]+(?:\.[\w\.-]+)+[\w\-\._~:/?#[\]@!\$&'\(\)\*\+,;=.]+$/
@@ -70,7 +77,16 @@ const App = () => {
         <h2>Urls</h2>
         {urls.length > 0
           &&
-          <Tree urls={urls} />
+          <div style={containerStyles} ref={containerRef}>
+            <Tree
+              data={list_to_tree(urls)}
+              translate={translate}
+              renderCustomNodeElement={(rd3tProps) => renderForeignObjectNode({ ...rd3tProps, foreignObjectProps })}
+              orientation='vertical'
+              nodeSize={nodeSize}
+            />
+          </div>
+
         }
       </div>
       {errorMessage !== "" && <div>{errorMessage}</div>}
